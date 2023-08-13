@@ -19,6 +19,7 @@ contract SoulboundMembership is
 {
 	using Counters for Counters.Counter;
 	string public baseURI;
+	uint256 public mintCost = 777 * 10 ** 11;
 
 	Counters.Counter private _tokenIdCounter;
 
@@ -30,8 +31,9 @@ contract SoulboundMembership is
 		baseURI = baseURI_;
 	}
 
-	function safeMint(address to, string memory uri) public {
+	function safeMint(address to, string memory uri) public payable {
 		require(balanceOf(_msgSender()) == 0, "ERR: Max balance reached");
+		require(msg.value >= mintCost, "ERR: Mint cost is 0.0000777 ETH");
 		uint256 tokenId = _tokenIdCounter.current();
 		_tokenIdCounter.increment();
 		_safeMint(to, tokenId);
