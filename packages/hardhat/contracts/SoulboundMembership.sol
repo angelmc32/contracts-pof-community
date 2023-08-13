@@ -18,6 +18,7 @@ contract SoulboundMembership is
 	Ownable
 {
 	using Counters for Counters.Counter;
+	address payable public withdrawFundsAddress;
 	string public baseURI;
 	uint256 public mintCost = 777 * 10 ** 11;
 
@@ -26,8 +27,10 @@ contract SoulboundMembership is
 	constructor(
 		string memory name_,
 		string memory symbol_,
-		string memory baseURI_
+		string memory baseURI_,
+		address withdrawFundsAddress_
 	) ERC721(name_, symbol_) {
+		withdrawFundsAddress = payable(withdrawFundsAddress_);
 		baseURI = baseURI_;
 	}
 
@@ -38,6 +41,16 @@ contract SoulboundMembership is
 		_tokenIdCounter.increment();
 		_safeMint(to, tokenId);
 		_setTokenURI(tokenId, uri);
+	}
+
+	function withdraw(uint _amount) external {
+		address sender = _msgSender();
+		require(sender == withdrawFundsAddress, "caller is not owner");
+		payable(sender).transfer(_amount);
+	}
+
+	function getBalance() external view returns (uint) {
+		return address(this).balance;
 	}
 
 	function _baseURI() internal view override returns (string memory) {
@@ -71,4 +84,8 @@ contract SoulboundMembership is
 	) public view override(ERC721) returns (bool) {
 		return super.supportsInterface(interfaceId);
 	}
+
+	receive() external payable {}
+
+	fallback() external payable {}
 }
