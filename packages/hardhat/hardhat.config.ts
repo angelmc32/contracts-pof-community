@@ -90,6 +90,10 @@ const config: HardhatUserConfig = {
       accounts: [deployerPrivateKey],
       verifyURL: "https://zksync2-mainnet-explorer.zksync.io/contract_verification",
     },
+    "zora-goerli": {
+      url: "https://testnet.rpc.zora.energy/",
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+    },
   },
   verify: {
     etherscan: {

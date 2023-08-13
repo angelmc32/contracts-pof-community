@@ -35,7 +35,7 @@ contract SoulboundMembership is
 	}
 
 	function safeMint(address to, string memory uri) public payable {
-		require(balanceOf(_msgSender()) == 0, "ERR: Max balance reached");
+		require(balanceOf(to) == 0, "ERR: Max balance reached");
 		require(msg.value >= mintCost, "ERR: Mint cost is 0.0000777 ETH");
 		uint256 tokenId = _tokenIdCounter.current();
 		_tokenIdCounter.increment();
