@@ -24,7 +24,17 @@ const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEn
   await deploy("SoulboundMembership", {
     from: deployer,
     // Contract constructor arguments
-    args: ["Membership", "MEMB", "membership.org"],
+    args: ["Proof of Community", "PROOF", "proofofcommunity.xyz", deployer],
+    log: true,
+    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
+    // automatically mining the contract deployment transaction. There is no effect on live networks.
+    autoMine: true,
+  });
+
+  await deploy("CommunityBoundERC20", {
+    from: deployer,
+    // Contract constructor arguments
+    args: ["0x6391CCbd445E744819C229773b7Ac7c8331dA72b"],
     log: true,
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
     // automatically mining the contract deployment transaction. There is no effect on live networks.
