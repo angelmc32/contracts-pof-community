@@ -5,83 +5,68 @@ pragma solidity >=0.8.0 <0.9.0;
 import "hardhat/console.sol";
 
 // Use openzeppelin to inherit battle-tested implementations (ERC20, ERC721, etc)
-// import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
-/**
- * A smart contract that allows changing a state variable of the contract and tracking the changes
- * It also allows the owner to withdraw the Ether in the contract
- * @author BuidlGuidl
- */
-contract YourContract {
-	// State Variables
-	address public immutable owner;
-	string public greeting = "Building Unstoppable Apps!!!";
-	bool public premium = false;
-	uint256 public totalCounter = 0;
-	mapping(address => uint) public userGreetingCounter;
+contract SoulboundMembership is
+	ERC721,
+	ERC721URIStorage,
+	ERC721Burnable,
+	Ownable
+{
+	using Counters for Counters.Counter;
+	string public baseURI;
 
-	// Events: a way to emit log statements from smart contract that can be listened to by external parties
-	event GreetingChange(
-		address indexed greetingSetter,
-		string newGreeting,
-		bool premium,
-		uint256 value
-	);
+	Counters.Counter private _tokenIdCounter;
 
-	// Constructor: Called once on contract deployment
-	// Check packages/hardhat/deploy/00_deploy_your_contract.ts
-	constructor(address _owner) {
-		owner = _owner;
+	constructor(
+		string memory name_,
+		string memory symbol_,
+		string memory baseURI_
+	) ERC721(name_, symbol_) {
+		baseURI = baseURI_;
 	}
 
-	// Modifier: used to define a set of rules that must be met before or after a function is executed
-	// Check the withdraw() function
-	modifier isOwner() {
-		// msg.sender: predefined variable that represents address of the account that called the current function
-		require(msg.sender == owner, "Not the Owner");
-		_;
+	function safeMint(address to, string memory uri) public {
+		require(balanceOf(_msgSender()) == 0, "ERR: Max balance reached");
+		uint256 tokenId = _tokenIdCounter.current();
+		_tokenIdCounter.increment();
+		_safeMint(to, tokenId);
+		_setTokenURI(tokenId, uri);
 	}
 
-	/**
-	 * Function that allows anyone to change the state variable "greeting" of the contract and increase the counters
-	 *
-	 * @param _newGreeting (string memory) - new greeting to save on the contract
-	 */
-	function setGreeting(string memory _newGreeting) public payable {
-		// Print data to the hardhat chain console. Remove when deploying to a live network.
-		console.log(
-			"Setting new greeting '%s' from %s",
-			_newGreeting,
-			msg.sender
-		);
-
-		// Change state variables
-		greeting = _newGreeting;
-		totalCounter += 1;
-		userGreetingCounter[msg.sender] += 1;
-
-		// msg.value: built-in global variable that represents the amount of ether sent with the transaction
-		if (msg.value > 0) {
-			premium = true;
-		} else {
-			premium = false;
-		}
-
-		// emit: keyword used to trigger an event
-		emit GreetingChange(msg.sender, _newGreeting, msg.value > 0, 0);
+	function _baseURI() internal view override returns (string memory) {
+		return baseURI;
 	}
 
-	/**
-	 * Function that allows the owner to withdraw all the Ether in the contract
-	 * The function can only be called by the owner of the contract as defined by the isOwner modifier
-	 */
-	function withdraw() public isOwner {
-		(bool success, ) = owner.call{ value: address(this).balance }("");
-		require(success, "Failed to send Ether");
+	function _burn(
+		uint256 tokenId
+	) internal override(ERC721, ERC721URIStorage) {
+		super._burn(tokenId);
 	}
 
-	/**
-	 * Function that allows the contract to receive ETH
-	 */
-	receive() external payable {}
+	function tokenURI(
+		uint256 tokenId
+	) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+		return super.tokenURI(tokenId);
+	}
+
+	function _beforeTokenTransfer(
+		address from,
+		address to,
+		uint256 tokenId,
+		uint256 batchSize
+	) internal override(ERC721) {
+		require(from == address(0), "Err: token transfer is BLOCKED");
+		super._beforeTokenTransfer(from, to, tokenId, batchSize);
+	}
+
+	function supportsInterface(
+		bytes4 interfaceId
+	) public view override(ERC721) returns (bool) {
+		return super.supportsInterface(interfaceId);
+	}
 }
