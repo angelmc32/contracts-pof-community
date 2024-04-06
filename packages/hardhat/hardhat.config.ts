@@ -94,6 +94,10 @@ const config: HardhatUserConfig = {
       url: "https://testnet.rpc.zora.energy/",
       accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
     },
+    trooptimismTestnet: {
+      url: "https://l2-tremendous-plum-penguin-b62gviikly.t.conduit.xyz",
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+    },
   },
   verify: {
     etherscan: {
